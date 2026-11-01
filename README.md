@@ -25,6 +25,20 @@ npm test         # Unit- und Integrationstests (Vitest)
 npm run check    # Typprüfung
 ```
 
+## Offline
+
+Die App hält auf jedem Gerät eine eigene Kopie aller Daten (IndexedDB, `src/lib/local/`).
+Änderungen landen zuerst dort und in einer Warteschlange, die bei Verbindung zum Server
+abgearbeitet wird; danach übernimmt das Gerät den Stand des Servers. Fach und Fälligkeit
+berechnet der Server aus dem Review-Log, deshalb führen Antworten von mehreren Geräten
+zum selben Ergebnis.
+
+Der Service Worker (`src/service-worker/`) speichert App-Code, Seiten und Medien für die
+Offline-Nutzung. Er läuft nur im Produktions-Build (`npm run build && node build`) und nur
+über HTTPS oder `localhost`.
+
+App-Icons neu erzeugen: `python3 scripts/make-icons.py` (braucht Pillow).
+
 ## Datenbank
 
 SQLite unter `data/vokabeln.db`, Zugriff über Drizzle. Schema: `src/lib/server/db/schema.ts`.

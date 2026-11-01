@@ -1,5 +1,6 @@
 import type { AppData, Card, Deck, ReviewInput } from './types.ts';
 
+/** status 0 means the server could not be reached. */
 export class ApiError extends Error {
 	constructor(
 		message: string,
@@ -16,10 +17,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
 	} catch {
 		throw new ApiError('Keine Verbindung zum Server.', 0);
 	}
-	if (res.status === 401) {
-		location.href = '/login';
-		throw new ApiError('Bitte neu anmelden.', 401);
-	}
+	if (res.status === 401) throw new ApiError('Bitte neu anmelden.', 401);
 	if (!res.ok) {
 		let message = `Der Server hat mit Fehler ${res.status} geantwortet.`;
 		try {
@@ -45,5 +43,7 @@ export const api = {
 	deleteCard: (id: string) => request<void>(`/api/cards/${id}`, { method: 'DELETE' }),
 	review: (review: ReviewInput) => post<Card>('/api/reviews', review)
 };
+
+export type Api = typeof api;
 
 export const mediaUrl = (name: string) => `/media/${name}`;

@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { api } from '#lib/api.ts';
 	import { app } from '#lib/app.svelte.ts';
 	import FachBar from '#lib/components/FachBar.svelte';
-	import { newId } from '#lib/id.ts';
 	import { FACH, plural } from '#lib/labels.ts';
 	import { isDue } from '#lib/leitner.ts';
 	import { toast } from '#lib/toast.svelte.ts';
@@ -23,8 +21,7 @@
 		e.preventDefault();
 		saving = true;
 		try {
-			const deck = await api.createDeck({ id: newId(), name: name.trim(), languagePair: languagePair.trim() });
-			app.decks.push(deck);
+			const deck = await app.createDeck(name.trim(), languagePair.trim());
 			toast.show('Stapel angelegt');
 			await goto(`/stapel/${deck.id}`);
 		} catch (err) {

@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { page } from '$app/state';
-	import { api, mediaUrl } from '#lib/api.ts';
 	import { app } from '#lib/app.svelte.ts';
 	import Kasten from '#lib/components/Kasten.svelte';
 	import SideEditor from '#lib/components/SideEditor.svelte';
-	import { newId } from '#lib/id.ts';
 	import { FACH, plural, relativeDue } from '#lib/labels.ts';
 	import { isDue } from '#lib/leitner.ts';
+	import { mediaSrc } from '#lib/local/media.svelte.ts';
 	import { toast } from '#lib/toast.svelte.ts';
 
 	const deck = $derived(app.deck(page.params.id ?? ''));
@@ -39,18 +38,14 @@
 			toast.show('Beende zuerst die Aufnahme.');
 			return;
 		}
-		const form = new FormData();
-		form.set('id', newId());
-		form.set('deckId', deck.id);
-		form.set('front', front);
-		form.set('back', back);
-		const media = { frontImage, frontAudio, backImage, backAudio };
-		for (const [key, blob] of Object.entries(media)) if (blob) form.set(key, blob, key);
-
 		saving = true;
 		try {
-			const card = await api.createCard(form);
-			app.upsertCard(card);
+			const card = await app.addCard(deck.id, front.trim(), back.trim(), {
+				frontImage,
+				frontAudio,
+				backImage,
+				backAudio
+			});
 			fresh = [...fresh, card.id];
 			front = back = '';
 			frontImage = frontAudio = backImage = backAudio = null;
@@ -72,14 +67,13 @@
 			.split('\n')
 			.map((line) => line.split(';').map((s) => s.trim()))
 			.filter(([f, b]) => f && b)
-			.map(([f, b]) => ({ id: newId(), front: f, back: b }));
+			.map(([f, b]) => ({ front: f, back: b }));
 		if (!rows.length) {
 			toast.show('Keine gültigen Zeilen gefunden. Format: Vorderseite;Rückseite', 4000);
 			return;
 		}
 		try {
-			const created = await api.importCards(deck.id, rows);
-			created.forEach((c) => app.upsertCard(c));
+			const created = await app.importCards(deck.id, rows);
 			fresh = [...fresh, ...created.map((c) => c.id)];
 			importText = '';
 			toast.show(`${plural(created.length, 'Karte', 'Karten')} importiert`);
@@ -101,8 +95,7 @@
 		}
 		armed = null;
 		try {
-			await api.deleteCard(id);
-			app.removeCard(id);
+			await app.deleteCard(id);
 			toast.show('Karte gelöscht');
 		} catch (err) {
 			toast.show((err as Error).message, 4000);
@@ -211,7 +204,8 @@
 							{armed === card.id ? 'Löschen?' : '×'}
 						</button>
 						{#if card.frontImage || card.backImage}
-							<img class="thumb" src={mediaUrl((card.frontImage ?? card.backImage)!)} alt="" loading="lazy" />
+							{@const src = mediaSrc(app.ldb, (card.frontImage ?? card.backImage)!)}
+							{#if src}<img class="thumb" {src} alt="" loading="lazy" />{/if}
 						{/if}
 					</li>
 				{/each}

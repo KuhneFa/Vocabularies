@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { api, mediaUrl } from '#lib/api.ts';
 	import { app } from '#lib/app.svelte.ts';
-	import { newId } from '#lib/id.ts';
 	import { FACH, plural } from '#lib/labels.ts';
 	import { isDue } from '#lib/leitner.ts';
+	import { mediaSrc } from '#lib/local/media.svelte.ts';
 	import { toast } from '#lib/toast.svelte.ts';
 	import type { Card, Side } from '#lib/types.ts';
 
@@ -87,11 +86,9 @@
 			if (!failed.includes(c.id)) failed = [...failed, c.id];
 			queue.push(c.id); // asked again later in this round
 		}
-		app.recordAnswer(ok);
-		api
-			.review({ id: newId(), cardId: c.id, correct: ok, answeredAt: Date.now(), durationMs: Date.now() - shownAt })
-			.then((updated) => app.upsertCard(updated))
-			.catch((err) => toast.show(`Antwort nicht gespeichert: ${err.message}`, 4000));
+		app.answer(c.id, ok, Date.now() - shownAt).catch((err) =>
+			toast.show(`Antwort nicht gespeichert: ${(err as Error).message}`, 4000)
+		);
 	}
 
 	// swipe right = richtig, left = falsch
@@ -137,8 +134,9 @@
 		else goto(backHref);
 	}
 
-	function play(name: string) {
-		new Audio(mediaUrl(name)).play().catch(() => toast.show('Audio konnte nicht abgespielt werden.'));
+	// started synchronously inside the tap, otherwise iOS blocks playback
+	function play(src: string) {
+		new Audio(src).play().catch(() => toast.show('Audio konnte nicht abgespielt werden.'));
 	}
 
 	const total = $derived(right + wrong);
@@ -155,11 +153,13 @@
 {#snippet media(c: Card, side: Side)}
 	{@const image = side === 'front' ? c.frontImage : c.backImage}
 	{@const audio = side === 'front' ? c.frontAudio : c.backAudio}
-	{#if image}
-		<img class="card-img" src={mediaUrl(image)} alt="Bild zu {c.front}" draggable="false" />
+	{@const imageSrc = image ? mediaSrc(app.ldb, image) : undefined}
+	{@const audioSrc = audio ? mediaSrc(app.ldb, audio) : undefined}
+	{#if imageSrc}
+		<img class="card-img" src={imageSrc} alt="Bild zu {c.front}" draggable="false" />
 	{/if}
-	{#if audio}
-		<button class="play" onclick={() => play(audio)}>▶ Anhören</button>
+	{#if audioSrc}
+		<button class="play" onclick={() => play(audioSrc)}>▶ Anhören</button>
 	{/if}
 {/snippet}
 

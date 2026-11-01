@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, isDue, replay, startOfDay } from './leitner';
+import { addDays, isDue, replay, startOfDay, step } from './leitner';
 
 // Mon 2 Nov 2026, 09:00 in Berlin
 const MON_9 = new Date(2026, 10, 2, 9, 0).getTime();
@@ -45,6 +45,17 @@ describe('replay', () => {
 		const reviews = [right(at(0)), wrong(at(1)), right(at(2)), right(at(3))];
 		const shuffled = [reviews[2], reviews[0], reviews[3], reviews[1]];
 		expect(replay(MON_9, shuffled)).toEqual(replay(MON_9, reviews));
+	});
+});
+
+describe('step', () => {
+	it('gives the same result as replaying, one answer at a time', () => {
+		const reviews = [right(at(0)), right(at(1)), wrong(at(3, 9)), right(at(3, 10)), right(at(4))];
+		let state = { level: 0, dueAt: MON_9 };
+		let lastWrongAt: number | null = null;
+		for (const r of reviews) ({ state, lastWrongAt } = step(state, lastWrongAt, r));
+		expect(state).toEqual(replay(MON_9, reviews));
+		expect(lastWrongAt).toBe(at(3, 9));
 	});
 });
 

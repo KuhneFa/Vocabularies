@@ -22,9 +22,14 @@ export interface Card {
 	backAudio: string | null;
 	level: number;
 	dueAt: number;
+	/** Time of the latest wrong answer, needed to apply answers on the device the same way the server does. */
+	lastWrongAt: number | null;
 	createdAt: number;
 	updatedAt: number;
 }
+
+export type MediaKey = 'frontImage' | 'frontAudio' | 'backImage' | 'backAudio';
+export const MEDIA_KEYS: MediaKey[] = ['frontImage', 'frontAudio', 'backImage', 'backAudio'];
 
 export interface Stats {
 	today: { right: number; wrong: number };

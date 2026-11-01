@@ -39,25 +39,31 @@ export function isDue(state: CardState, now: number): boolean {
 }
 
 /**
- * Replays a card's reviews in time order. A card answered wrong earlier on the same day
- * stays in compartment 1 even if a later answer that day is correct.
+ * Applies one answer. A card answered wrong earlier on the same day stays in
+ * compartment 1 even if a later answer that day is correct.
  */
+export function step(
+	state: CardState,
+	lastWrongAt: number | null,
+	review: Review
+): { state: CardState; lastWrongAt: number | null } {
+	const day = startOfDay(review.answeredAt);
+	if (!review.correct) {
+		return { state: { level: 1, dueAt: addDays(day, 1) }, lastWrongAt: review.answeredAt };
+	}
+	if (lastWrongAt !== null && startOfDay(lastWrongAt) === day) {
+		return { state: { level: 1, dueAt: addDays(day, INTERVAL_DAYS[1]) }, lastWrongAt };
+	}
+	const level = Math.min(MAX_LEVEL, state.level + 1);
+	return { state: { level, dueAt: addDays(day, INTERVAL_DAYS[level]) }, lastWrongAt };
+}
+
+/** Replays a card's reviews in time order. */
 export function replay(createdAt: number, reviews: readonly Review[]): CardState {
 	let state: CardState = { level: 0, dueAt: createdAt };
-	let lastWrongDay: number | null = null;
-
-	const sorted = [...reviews].sort((a, b) => a.answeredAt - b.answeredAt);
-	for (const r of sorted) {
-		const day = startOfDay(r.answeredAt);
-		if (!r.correct) {
-			lastWrongDay = day;
-			state = { level: 1, dueAt: addDays(day, 1) };
-		} else if (lastWrongDay === day) {
-			state = { level: 1, dueAt: addDays(day, INTERVAL_DAYS[1]) };
-		} else {
-			const level = Math.min(MAX_LEVEL, state.level + 1);
-			state = { level, dueAt: addDays(day, INTERVAL_DAYS[level]) };
-		}
+	let lastWrongAt: number | null = null;
+	for (const r of [...reviews].sort((a, b) => a.answeredAt - b.answeredAt)) {
+		({ state, lastWrongAt } = step(state, lastWrongAt, r));
 	}
 	return state;
 }

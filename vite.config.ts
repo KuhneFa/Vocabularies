@@ -10,7 +10,9 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			adapter: adapter(),
+			// absolute asset paths: offline, the service worker serves one stored page for every route
+			paths: { relative: false }
 		})
 	],
 	test: {

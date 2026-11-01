@@ -60,6 +60,15 @@ describe('addReview', () => {
 		expect(addReview(db, review(c.id, false, at(3)))).toMatchObject({ level: 1, dueAt: addDays(at(3), 1) });
 	});
 
+	it('reports the latest wrong answer so devices can apply answers themselves', () => {
+		const c = card();
+		expect(addReview(db, review(c.id, true, at(0)))?.lastWrongAt).toBeNull();
+		addReview(db, review(c.id, false, at(1)));
+		addReview(db, review(c.id, false, at(2)));
+		expect(addReview(db, review(c.id, true, at(3)))?.lastWrongAt).toBe(at(2));
+		expect(loadAll(db, at(3)).cards[0].lastWrongAt).toBe(at(2));
+	});
+
 	it('counts a review sent twice only once', () => {
 		const c = card();
 		const r = review(c.id, true, at(0));

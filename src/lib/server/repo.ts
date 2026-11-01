@@ -1,4 +1,4 @@
-import { and, eq, gte, isNull } from 'drizzle-orm';
+import { and, eq, gte, isNull, sql } from 'drizzle-orm';
 import { addDays, replay, startOfDay } from '#lib/leitner.ts';
 import type { AppData, Card, Deck, ReviewInput, Stats } from '#lib/types.ts';
 import type { Db } from './db/index.ts';
@@ -26,6 +26,8 @@ const cardFields = {
 	backAudio: cards.backAudio,
 	level: cards.level,
 	dueAt: cards.dueAt,
+	// spelled out: drizzle leaves column names unqualified here, so "id" would mean reviews.id
+	lastWrongAt: sql<number | null>`(select max(r.answered_at) from reviews r where r.card_id = "cards"."id" and r.correct = 0)`,
 	createdAt: cards.createdAt,
 	updatedAt: cards.updatedAt
 };
