@@ -33,6 +33,8 @@
 		max-width: 380px;
 		margin: 0 auto;
 		padding-block: 15vh 48px;
+		padding-left: max(16px, env(safe-area-inset-left, 0px));
+		padding-right: max(16px, env(safe-area-inset-right, 0px));
 		display: grid;
 		gap: 20px;
 	}

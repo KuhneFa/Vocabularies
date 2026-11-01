@@ -7,8 +7,9 @@ import * as schema from './schema';
 
 export type Db = BetterSQLite3Database<typeof schema>;
 
-export const DATA_DIR = process.env.DATA_DIR ?? 'data';
-const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR ?? 'drizzle';
+// read lazily: in development .env is loaded in the init hook, after modules are imported
+export const dataDir = () => process.env.DATA_DIR ?? 'data';
+const migrationsDir = () => process.env.MIGRATIONS_DIR ?? 'drizzle';
 
 /** Opens (and migrates) a database. Pass ':memory:' for tests. */
 export function openDb(file: string): Db {
@@ -17,7 +18,7 @@ export function openDb(file: string): Db {
 	sqlite.pragma('journal_mode = WAL');
 	sqlite.pragma('foreign_keys = ON');
 	const db = drizzle(sqlite, { schema });
-	migrate(db, { migrationsFolder: MIGRATIONS_DIR });
+	migrate(db, { migrationsFolder: migrationsDir() });
 	return db;
 }
 
@@ -25,6 +26,6 @@ let instance: Db | undefined;
 
 /** The app's database, opened on first use. */
 export function db(): Db {
-	instance ??= openDb(join(DATA_DIR, 'vokabeln.db'));
+	instance ??= openDb(join(dataDir(), 'vokabeln.db'));
 	return instance;
 }
