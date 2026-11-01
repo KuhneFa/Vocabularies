@@ -1,0 +1,93 @@
+/* Tagmodus: weiß und grün. Nachtmodus: schwarz-grün. Werte wie im Mock (mock/index.html). */
+:root {
+	--bg: #f3f8f4;
+	--surface: #ffffff;
+	--card: #ffffff;
+	--ink: #10241a;
+	--muted: #587063;
+	--line: #d4e4d9;
+	--slot: #e5efe8;
+	--accent: #1c7a4a;
+	--accent-ink: #ffffff;
+	--accent-soft: #dcf0e3;
+	--ok: #1c7a4a;
+	--ok-soft: #dcf0e3;
+	--bad: #c0413b;
+	--bad-soft: #fae3e1;
+
+	--font-body: -apple-system, 'Segoe UI', system-ui, sans-serif;
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #07100b;
+		--surface: #0e1b14;
+		--card: #112119;
+		--ink: #e2f1e7;
+		--muted: #8da898;
+		--line: #1e3428;
+		--slot: #15271d;
+		--accent: #4ccb86;
+		--accent-ink: #04140b;
+		--accent-soft: #133a25;
+		--ok: #4ccb86;
+		--ok-soft: #123423;
+		--bad: #ef7b73;
+		--bad-soft: #391a19;
+		color-scheme: dark;
+	}
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--ink);
+	font: 16px/1.5 var(--font-body);
+	padding-left: max(16px, env(safe-area-inset-left, 0px));
+	padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+h1 {
+	margin: 0;
+	font-size: 28px;
+	letter-spacing: -0.01em;
+}
+
+p {
+	margin: 0;
+}
+
+button,
+input {
+	font: inherit;
+	color: inherit;
+}
+
+:focus-visible {
+	outline: 3px solid var(--accent);
+	outline-offset: 2px;
+}
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-weight: 700;
+	padding: 12px 18px;
+	border-radius: 12px;
+	border: 1px solid var(--line);
+	background: var(--surface);
+	cursor: pointer;
+}
+
+.btn.primary {
+	background: var(--accent);
+	color: var(--accent-ink);
+	border-color: transparent;
+}
